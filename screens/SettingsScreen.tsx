@@ -1,5 +1,11 @@
 import React from 'react';
 import { ChevronRightIcon } from '../components/Icons';
+import Header from '../components/Header';
+
+interface SettingsScreenProps {
+    userName: string;
+    userEmail: string;
+}
 
 const SettingsItem: React.FC<{ label: string; icon: string }> = ({ label, icon }) => (
     <button className="w-full flex items-center p-4 bg-white rounded-xl mb-3 shadow-sm transition-all duration-300 hover:shadow-md">
@@ -9,19 +15,21 @@ const SettingsItem: React.FC<{ label: string; icon: string }> = ({ label, icon }
     </button>
 );
 
-const SettingsScreen: React.FC = () => {
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ userName, userEmail }) => {
+    const pageTitle = (
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tighter">Settings</h1>
+    );
+    
     return (
         <div className="p-6 space-y-8">
-            <header>
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tighter">Settings</h1>
-            </header>
+            <Header title={pageTitle} showAvatar={false} />
             
             <section>
                 <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm">
                      <img src="https://picsum.photos/seed/user/64/64" alt="User" className="w-16 h-16 rounded-full" />
                     <div>
-                        <p className="font-bold text-xl text-gray-800">Lilya</p>
-                        <p className="text-gray-500">lilya.dev@example.com</p>
+                        <p className="font-bold text-xl text-gray-800">{userName}</p>
+                        <p className="text-gray-500">{userEmail}</p>
                     </div>
                 </div>
             </section>

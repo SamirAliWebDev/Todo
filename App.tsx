@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { Task, Screen } from './types';
 import BottomNav from './components/BottomNav';
 import HomeScreen from './screens/HomeScreen';
@@ -7,47 +7,43 @@ import TrackerScreen from './screens/TrackerScreen';
 import SettingsScreen from './screens/SettingsScreen';
 
 const App: React.FC = () => {
-    const [tasks, setTasks] = useState<Task[]>([
-        { id: '1', text: 'Design the new logo', completed: false, category: 'Work' },
-        { id: '2', text: 'Develop the landing page', completed: false, category: 'Work' },
-        { id: '3', text: 'Go for a 30-min run', completed: true, category: 'Fitness' },
-        { id: '4', text: 'Buy groceries', completed: false, category: 'Personal' },
-    ]);
+    const [tasks, setTasks] = useState<Task[]>([]);
     const [activeScreen, setActiveScreen] = useState<Screen>('home');
+    const [user] = useState({ name: 'Lilya', email: 'lilya.dev@example.com' });
 
-    const handleAddTask = (text: string) => {
+    const handleAddTask = useCallback((text: string) => {
         if (text.trim()) {
             const newTask: Task = {
                 id: Date.now().toString(),
                 text,
                 completed: false,
             };
-            setTasks([newTask, ...tasks]);
+            setTasks(currentTasks => [newTask, ...currentTasks]);
         }
-    };
-    
-    const handleToggleTask = (id: string) => {
-        setTasks(tasks.map(task => 
+    }, []);
+
+    const handleToggleTask = useCallback((id: string) => {
+        setTasks(currentTasks => currentTasks.map(task => 
             task.id === id ? { ...task, completed: !task.completed } : task
         ));
-    };
+    }, []);
 
-    const handleDeleteTask = (id: string) => {
-        setTasks(tasks.filter(task => task.id !== id));
-    };
+    const handleDeleteTask = useCallback((id: string) => {
+        setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
+    }, []);
 
     const renderScreen = () => {
         switch (activeScreen) {
             case 'home':
-                return <HomeScreen tasks={tasks} />;
+                return <HomeScreen tasks={tasks} userName={user.name} setActiveScreen={setActiveScreen} />;
             case 'tasks':
-                return <TasksScreen tasks={tasks} onAddTask={handleAddTask} onToggleTask={handleToggleTask} onDeleteTask={handleDeleteTask} />;
+                return <TasksScreen tasks={tasks} onAddTask={handleAddTask} onToggleTask={handleToggleTask} onDeleteTask={handleDeleteTask} setActiveScreen={setActiveScreen} />;
             case 'tracker':
-                return <TrackerScreen tasks={tasks} />;
+                return <TrackerScreen tasks={tasks} setActiveScreen={setActiveScreen} />;
             case 'settings':
-                return <SettingsScreen />;
+                return <SettingsScreen userName={user.name} userEmail={user.email} />;
             default:
-                return <HomeScreen tasks={tasks} />;
+                return <HomeScreen tasks={tasks} userName={user.name} setActiveScreen={setActiveScreen} />;
         }
     };
     
