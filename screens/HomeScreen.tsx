@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Task, Screen } from '../types';
 import { ChevronRightIcon } from '../components/Icons';
@@ -9,23 +10,28 @@ interface HomeScreenProps {
     setActiveScreen: (screen: Screen) => void;
 }
 
-const ProgressBar: React.FC<{ value: number }> = ({ value }) => {
-    return (
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-            <div 
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full origin-left transition-transform duration-500 ease-out" 
-                style={{ transform: `scaleX(${value / 100})` }}
-            ></div>
-        </div>
-    );
-};
-
 const TaskQuickView: React.FC<{ task: Task }> = ({ task }) => (
-    <div className="flex items-center p-3 bg-white rounded-xl mb-2">
-        <div className={`w-5 h-5 rounded-md flex-shrink-0 mr-3 ${task.completed ? 'bg-purple-200' : 'bg-yellow-200'}`}></div>
-        <span className={`flex-grow text-sm ${task.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-            {task.text}
-        </span>
+    <div className="flex items-start p-3 bg-white rounded-xl mb-2">
+        <div className={`w-5 h-5 rounded-md flex-shrink-0 mr-3 mt-1 ${task.completed ? 'bg-teal-200' : 'bg-yellow-200'}`}></div>
+        <div className="flex-grow">
+            <span className={`text-sm truncate block ${task.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                {task.text}
+            </span>
+            {(task.category || task.time) && (
+                <div className="flex items-center space-x-2 text-xs text-gray-400 mt-1">
+                     {task.category && (
+                        <span className={`px-1.5 py-0.5 rounded text-white text-[9px] font-bold ${
+                            task.category === 'Work' ? 'bg-blue-400' :
+                            task.category === 'Fitness' ? 'bg-green-400' :
+                            'bg-yellow-500' // Personal
+                        }`}>
+                            {task.category}
+                        </span>
+                    )}
+                    {task.time && <span>{task.time}</span>}
+                </div>
+            )}
+        </div>
     </div>
 );
 
@@ -33,7 +39,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
     const completedTasks = tasks.filter(t => t.completed).length;
     const totalTasks = tasks.length;
     const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const upcomingTasks = tasks.filter(t => !t.completed).slice(0, 3);
 
     let progressTitle: string;
     if (totalTasks === 0) {
@@ -62,19 +67,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
             <section className="bg-white rounded-3xl shadow-sm flex overflow-hidden">
-                <div className="flex-1 p-6">
-                    <div className="flex justify-between items-start mb-3">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-800">{progressTitle}</h2>
-                            <p className="text-sm text-gray-500">{completedTasks}/{totalTasks} tasks done</p>
-                        </div>
-                        <div className="font-bold text-purple-600 text-2xl">{completionPercentage}%</div>
+                <div className="flex-1 p-6 flex flex-col justify-center space-y-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800 leading-tight whitespace-nowrap">{progressTitle}</h2>
+                        <p className="text-sm text-gray-500 mt-1">{completedTasks} of {totalTasks} tasks done</p>
                     </div>
-                    <ProgressBar value={completionPercentage} />
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                            className="bg-gradient-to-r from-cyan-400 to-teal-500 h-3 rounded-full transition-all duration-700 ease-out"
+                            style={{ width: `${completionPercentage}%` }}
+                        ></div>
+                    </div>
                 </div>
                 <div className="w-36 flex-shrink-0">
                     <img
-                        src="https://i.postimg.cc/vZFBzSms/e126264ff36a4e88f2f693714760b46e.png"
+                        src="https://i.postimg.cc/XNDS4GMp/16fbcbbc47b26b458438ce58ab4429f8.png"
                         alt="Progress illustration"
                         className="w-full h-full object-cover"
                     />
@@ -84,23 +91,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
             <section>
                  <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-bold text-gray-800">Upcoming Tasks</h2>
-                    <button className="text-sm font-semibold text-purple-600 flex items-center">
+                    <button className="text-sm font-semibold text-teal-500 flex items-center">
                         See All <ChevronRightIcon className="w-4 h-4" />
                     </button>
                 </div>
                 <div>
-                    {upcomingTasks.length > 0 ? (
-                        upcomingTasks.map(task => <TaskQuickView key={task.id} task={task} />)
+                    {tasks.filter(t => !t.completed).slice(0, 3).length > 0 ? (
+                        tasks.filter(t => !t.completed).slice(0, 3).map(task => <TaskQuickView key={task.id} task={task} />)
                     ) : (
                         <p className="text-gray-500 text-center py-4">No upcoming tasks. Great job!</p>
                     )}
                 </div>
             </section>
 
-             <section className="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 rounded-3xl text-white">
+             <section className="bg-gradient-to-br from-cyan-500 to-teal-600 p-6 rounded-3xl text-white">
                 <h2 className="text-lg font-bold">Go Premium!</h2>
                 <p className="text-sm opacity-80 mt-1 mb-4">Unlock more features and boost your productivity.</p>
-                <button className="bg-white text-purple-600 font-bold py-2 px-5 rounded-full text-sm">Upgrade Now</button>
+                <button className="bg-white text-teal-600 font-bold py-2 px-5 rounded-full text-sm">Upgrade Now</button>
             </section>
         </div>
     );

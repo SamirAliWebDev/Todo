@@ -11,12 +11,14 @@ const App: React.FC = () => {
     const [activeScreen, setActiveScreen] = useState<Screen>('home');
     const [user] = useState({ name: 'Lilya', email: 'lilya.dev@example.com' });
 
-    const handleAddTask = useCallback((text: string) => {
-        if (text.trim()) {
+    const handleAddTask = useCallback((taskDetails: { text: string; category?: 'Personal' | 'Work' | 'Fitness', time?: string }) => {
+        if (taskDetails.text.trim()) {
             const newTask: Task = {
                 id: Date.now().toString(),
-                text,
+                text: taskDetails.text,
                 completed: false,
+                category: taskDetails.category,
+                time: taskDetails.time,
             };
             setTasks(currentTasks => [newTask, ...currentTasks]);
         }

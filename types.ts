@@ -5,6 +5,7 @@ export interface Task {
   text: string;
   completed: boolean;
   category?: 'Personal' | 'Work' | 'Fitness';
+  time?: string;
 }
 
 export type Screen = 'home' | 'tasks' | 'tracker' | 'settings';
