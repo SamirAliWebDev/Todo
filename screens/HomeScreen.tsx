@@ -11,9 +11,9 @@ interface HomeScreenProps {
 
 const ProgressBar: React.FC<{ value: number }> = ({ value }) => {
     return (
-        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div 
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 h-4 rounded-full origin-left transition-transform duration-500 ease-out" 
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full origin-left transition-transform duration-500 ease-out" 
                 style={{ transform: `scaleX(${value / 100})` }}
             ></div>
         </div>
@@ -61,15 +61,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
         <div className="p-6 space-y-8">
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
-            <section className="bg-white p-8 rounded-3xl shadow-sm">
-                 <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-800">{progressTitle}</h2>
-                        <p className="text-base text-gray-500">{completedTasks}/{totalTasks} tasks done</p>
+            <section className="bg-white rounded-3xl shadow-sm flex overflow-hidden">
+                <div className="flex-1 p-6">
+                    <div className="flex justify-between items-start mb-3">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-800">{progressTitle}</h2>
+                            <p className="text-sm text-gray-500">{completedTasks}/{totalTasks} tasks done</p>
+                        </div>
+                        <div className="font-bold text-purple-600 text-2xl">{completionPercentage}%</div>
                     </div>
-                    <div className="font-bold text-purple-600 text-3xl">{completionPercentage}%</div>
+                    <ProgressBar value={completionPercentage} />
                 </div>
-                <ProgressBar value={completionPercentage} />
+                <div className="w-36 flex-shrink-0">
+                    <img
+                        src="https://i.postimg.cc/vZFBzSms/e126264ff36a4e88f2f693714760b46e.png"
+                        alt="Progress illustration"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
             </section>
             
             <section>
