@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import type { Task, Screen } from '../types';
-import { PlusIcon, TrashIcon } from '../components/Icons';
+import { PlusIcon, TrashIcon, XIcon } from '../components/Icons';
 import Header from '../components/Header';
 
 interface TasksScreenProps {
@@ -49,9 +49,24 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newTaskText, setNewTaskText] = useState('');
     const [newCategory, setNewCategory] = useState<'Personal' | 'Work' | 'Fitness'>();
-    const [newTime, setNewTime] = useState('');
+    
+    // Time picker state
+    const [hour, setHour] = useState('08');
+    const [minute, setMinute] = useState('30');
+    const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
+
     const [currentDate, setCurrentDate] = useState('');
+    
     const inputRef = useRef<HTMLInputElement>(null);
+    const hourRef = useRef<HTMLDivElement>(null);
+    const minuteRef = useRef<HTMLDivElement>(null);
+    const periodRef = useRef<HTMLDivElement>(null);
+    const scrollTimeout = useRef<number | null>(null);
+
+    const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+    const minutes = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
+    const periods: ('AM'|'PM')[] = ['AM', 'PM'];
+    const ITEM_HEIGHT = 40; // Corresponds to h-10
 
     useEffect(() => {
         const date = new Date();
@@ -62,18 +77,44 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
         if (isModalOpen) {
             const timer = setTimeout(() => {
                 inputRef.current?.focus();
-            }, 100);
+                // Set initial scroll positions for time picker
+                if(hourRef.current) hourRef.current.scrollTop = hours.indexOf(hour) * ITEM_HEIGHT;
+                if(minuteRef.current) minuteRef.current.scrollTop = minutes.indexOf(minute) * ITEM_HEIGHT;
+                if(periodRef.current) periodRef.current.scrollTop = periods.indexOf(period) * ITEM_HEIGHT;
+            }, 300);
             return () => clearTimeout(timer);
         }
     }, [isModalOpen]);
     
     const handleAddTaskSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onAddTask({ text: newTaskText, category: newCategory, time: newTime });
+        const formattedTime = `${hour}:${minute} ${period}`;
+        onAddTask({ text: newTaskText, category: newCategory, time: formattedTime });
         setNewTaskText('');
         setNewCategory(undefined);
-        setNewTime('');
+        setHour('08');
+        setMinute('30');
+        setPeriod('AM');
         setIsModalOpen(false);
+    };
+    
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    }
+
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>, type: 'hour' | 'minute' | 'period') => {
+        if (scrollTimeout.current) {
+            clearTimeout(scrollTimeout.current);
+        }
+
+        scrollTimeout.current = window.setTimeout(() => {
+            const target = e.target as HTMLDivElement;
+            const index = Math.round(target.scrollTop / ITEM_HEIGHT);
+            
+            if (type === 'hour') setHour(hours[index]);
+            if (type === 'minute') setMinute(minutes[index]);
+            if (type === 'period') setPeriod(periods[index]);
+        }, 150);
     };
 
     const activeTasks = tasks.filter(task => !task.completed);
@@ -120,58 +161,103 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
                 </button>
             </div>
             
-            {/* --- Add Task Modal --- */}
-            <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 z-10 ${isModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsModalOpen(false)}>
-                 <div 
-                    className={`absolute bottom-48 right-6 w-[calc(100%-3rem)] max-w-sm p-6 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl transition-all duration-300 ease-out origin-bottom-right will-change-transform ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}
-                    onClick={(e) => e.stopPropagation()}
-                 >
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">New Task</h2>
-                    <form onSubmit={handleAddTaskSubmit}>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={newTaskText}
-                            onChange={(e) => setNewTaskText(e.target.value)}
-                            placeholder="e.g., Learn React Native"
-                            className="w-full h-14 bg-white/50 rounded-xl px-4 text-gray-800 placeholder-gray-500 outline-none focus:ring-2 focus:ring-teal-500 border border-transparent focus:border-teal-500"
-                        />
+            {/* --- Add Task Modal with Small Circular Reveal --- */}
 
-                        <div className="mt-4">
-                            <label className="text-sm font-semibold text-gray-600 mb-2 block">Category</label>
-                            <div className="flex space-x-2">
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat}
-                                        type="button"
-                                        onClick={() => setNewCategory(cat)}
-                                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                                            newCategory === cat
-                                                ? 'bg-teal-500 text-white'
-                                                : 'bg-white/50 text-gray-700 hover:bg-white'
-                                        }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="mt-4">
-                            <label className="text-sm font-semibold text-gray-600 mb-2 block">Time</label>
+            {/* Backdrop */}
+            <div
+                className={`fixed inset-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity duration-500 ${isModalOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={handleCloseModal}
+            />
+            
+            {/* Modal positioned above the FAB */}
+            <div
+                className={`fixed bottom-[12rem] right-6 z-40 w-[calc(100%-3rem)] max-w-sm ${!isModalOpen && 'pointer-events-none'}`}
+            >
+                <div 
+                    className="w-full transition-[clip-path] duration-500 ease-in-out"
+                    style={{ 
+                        clipPath: isModalOpen 
+                            ? 'circle(150% at 95% 120%)' 
+                            : 'circle(0px at 95% 120%)'
+                    }}
+                >
+                    <div 
+                        className="relative w-full p-6 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={handleCloseModal}
+                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-200/50 rounded-full text-gray-600 hover:bg-gray-300/70 hover:text-gray-900 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                            aria-label="Close new task panel"
+                        >
+                            <XIcon className="w-5 h-5" />
+                        </button>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">New Task</h2>
+                        <form onSubmit={handleAddTaskSubmit}>
                             <input
+                                ref={inputRef}
                                 type="text"
-                                value={newTime}
-                                onChange={(e) => setNewTime(e.target.value)}
-                                placeholder="e.g., 10:30 AM"
+                                value={newTaskText}
+                                onChange={(e) => setNewTaskText(e.target.value)}
+                                placeholder="e.g., Learn React Native"
                                 className="w-full h-14 bg-white/50 rounded-xl px-4 text-gray-800 placeholder-gray-500 outline-none focus:ring-2 focus:ring-teal-500 border border-transparent focus:border-teal-500"
                             />
-                        </div>
-                        
-                         <button type="submit" className="w-full h-14 mt-6 bg-teal-500 text-white rounded-xl text-lg font-semibold hover:bg-teal-600 transition-colors">
-                            Add Task
-                        </button>
-                    </form>
+
+                            <div className="mt-4">
+                                <label className="text-sm font-semibold text-gray-600 mb-2 block">Category</label>
+                                <div className="flex space-x-2">
+                                    {categories.map(cat => (
+                                        <button
+                                            key={cat}
+                                            type="button"
+                                            onClick={() => setNewCategory(cat)}
+                                            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                                                newCategory === cat
+                                                    ? 'bg-teal-500 text-white'
+                                                    : 'bg-white/50 text-gray-700 hover:bg-white'
+                                            }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="mt-4">
+                                <label className="text-sm font-semibold text-gray-600 mb-2 block">Time</label>
+                                <div className="h-32 bg-white/50 rounded-xl flex items-center justify-between text-xl font-semibold text-gray-800 p-2 relative">
+                                    <div className="absolute inset-x-2 h-10 top-1/2 -translate-y-1/2 bg-teal-500/10 rounded-lg z-0 border-y-2 border-teal-500/20"></div>
+                                    
+                                    {/* Hour Scroller */}
+                                    <div ref={hourRef} onScroll={(e) => handleScroll(e, 'hour')} className="w-1/3 h-full overflow-y-scroll scroll-snap-type-y-mandatory scrollbar-hide text-center relative z-10">
+                                        <div className="h-[40px] flex-shrink-0"></div> {/* Top padding */}
+                                        {hours.map(h => <div key={h} className="h-10 flex items-center justify-center scroll-snap-align-center text-gray-400 data-[active=true]:text-gray-900 data-[active=true]:font-bold" data-active={h === hour}>{h}</div>)}
+                                        <div className="h-[40px] flex-shrink-0"></div> {/* Bottom padding */}
+                                    </div>
+                                    
+                                    <span className="font-extrabold text-2xl -translate-y-px">:</span>
+
+                                    {/* Minute Scroller */}
+                                    <div ref={minuteRef} onScroll={(e) => handleScroll(e, 'minute')} className="w-1/3 h-full overflow-y-scroll scroll-snap-type-y-mandatory scrollbar-hide text-center relative z-10">
+                                        <div className="h-[40px] flex-shrink-0"></div>
+                                        {minutes.map(m => <div key={m} className="h-10 flex items-center justify-center scroll-snap-align-center text-gray-400 data-[active=true]:text-gray-900 data-[active=true]:font-bold" data-active={m === minute}>{m}</div>)}
+                                        <div className="h-[40px] flex-shrink-0"></div>
+                                    </div>
+                                    
+                                    {/* AM/PM Scroller */}
+                                    <div ref={periodRef} onScroll={(e) => handleScroll(e, 'period')} className="w-1/3 h-full overflow-y-scroll scroll-snap-type-y-mandatory scrollbar-hide text-center relative z-10">
+                                        <div className="h-[40px] flex-shrink-0"></div>
+                                        {periods.map(p => <div key={p} className="h-10 flex items-center justify-center scroll-snap-align-center text-gray-400 data-[active=true]:text-gray-900 data-[active=true]:font-bold" data-active={p === period}>{p}</div>)}
+                                        <div className="h-[40px] flex-shrink-0"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                             <button type="submit" className="w-full h-14 mt-6 bg-teal-500 text-white rounded-xl text-lg font-semibold hover:bg-teal-600 transition-colors">
+                                Add Task
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
