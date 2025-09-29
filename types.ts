@@ -6,6 +6,8 @@ export interface Task {
   completed: boolean;
   category?: 'Personal' | 'Work' | 'Fitness';
   time?: string;
+  completionDate?: string;
+  date?: string;
 }
 
 export type Screen = 'home' | 'tasks' | 'tracker' | 'settings';

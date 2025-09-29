@@ -11,7 +11,7 @@ const App: React.FC = () => {
     const [activeScreen, setActiveScreen] = useState<Screen>('home');
     const [user] = useState({ name: 'Lilya', email: 'lilya.dev@example.com' });
 
-    const handleAddTask = useCallback((taskDetails: { text: string; category?: 'Personal' | 'Work' | 'Fitness', time?: string }) => {
+    const handleAddTask = useCallback((taskDetails: { text: string; category?: 'Personal' | 'Work' | 'Fitness', time?: string, date: string }) => {
         if (taskDetails.text.trim()) {
             const newTask: Task = {
                 id: Date.now().toString(),
@@ -19,15 +19,38 @@ const App: React.FC = () => {
                 completed: false,
                 category: taskDetails.category,
                 time: taskDetails.time,
+                date: taskDetails.date,
             };
             setTasks(currentTasks => [newTask, ...currentTasks]);
         }
     }, []);
 
     const handleToggleTask = useCallback((id: string) => {
-        setTasks(currentTasks => currentTasks.map(task => 
-            task.id === id ? { ...task, completed: !task.completed } : task
-        ));
+        setTasks(currentTasks => currentTasks.map(task => {
+            if (task.id === id) {
+                const isCompleted = !task.completed;
+                let completionDate;
+                if (isCompleted) {
+                    // Use the task's assigned date for completion, not the current date.
+                    // This ensures streaks are calculated correctly for past tasks.
+                    completionDate = task.date;
+                    // Fallback for any older tasks that might not have a date property
+                    if (!completionDate) {
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+                        const day = today.getDate().toString().padStart(2, '0');
+                        completionDate = `${year}-${month}-${day}`;
+                    }
+                }
+                return { 
+                    ...task, 
+                    completed: isCompleted,
+                    completionDate 
+                };
+            }
+            return task;
+        }));
     }, []);
 
     const handleDeleteTask = useCallback((id: string) => {

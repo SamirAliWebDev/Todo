@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { Task, Screen } from '../types';
 import { ChevronRightIcon } from '../components/Icons';
@@ -66,7 +67,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
         <div className="p-6 space-y-8">
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
-            <section className="bg-white rounded-3xl shadow-sm flex overflow-hidden">
+            <section className="bg-white rounded-3xl shadow-sm flex overflow-hidden items-stretch">
                 <div className="flex-1 p-6 flex flex-col justify-center space-y-4">
                     <div>
                         <h2 className="text-xl font-bold text-gray-800 leading-tight whitespace-nowrap">{progressTitle}</h2>
@@ -83,7 +84,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
                     <img
                         src="https://i.postimg.cc/XNDS4GMp/16fbcbbc47b26b458438ce58ab4429f8.png"
                         alt="Progress illustration"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-right"
                     />
                 </div>
             </section>

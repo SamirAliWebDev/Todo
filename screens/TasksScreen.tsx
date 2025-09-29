@@ -6,7 +6,7 @@ import Header from '../components/Header';
 
 interface TasksScreenProps {
     tasks: Task[];
-    onAddTask: (taskDetails: { text: string; category?: 'Personal' | 'Work' | 'Fitness'; time?: string }) => void;
+    onAddTask: (taskDetails: { text: string; category?: 'Personal' | 'Work' | 'Fitness'; time?: string; date: string }) => void;
     onToggleTask: (id: string) => void;
     onDeleteTask: (id: string) => void;
     setActiveScreen: (screen: Screen) => void;
@@ -46,16 +46,22 @@ const TaskItem: React.FC<{ task: Task; onToggle: (id: string) => void; onDelete:
 
 
 const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTask, onDeleteTask, setActiveScreen }) => {
+    const toLocalYYYYMMDD = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newTaskText, setNewTaskText] = useState('');
     const [newCategory, setNewCategory] = useState<'Personal' | 'Work' | 'Fitness'>();
-    
+    const [selectedDate, setSelectedDate] = useState<string>(toLocalYYYYMMDD(new Date()));
+
     // Time picker state
     const [hour, setHour] = useState('08');
     const [minute, setMinute] = useState('30');
     const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
-
-    const [currentDate, setCurrentDate] = useState('');
     
     const inputRef = useRef<HTMLInputElement>(null);
     const hourRef = useRef<HTMLDivElement>(null);
@@ -67,11 +73,6 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
     const minutes = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
     const periods: ('AM'|'PM')[] = ['AM', 'PM'];
     const ITEM_HEIGHT = 40; // Corresponds to h-10
-
-    useEffect(() => {
-        const date = new Date();
-        setCurrentDate(date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
-    }, []);
 
     useEffect(() => {
         if (isModalOpen) {
@@ -89,7 +90,7 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
     const handleAddTaskSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const formattedTime = `${hour}:${minute} ${period}`;
-        onAddTask({ text: newTaskText, category: newCategory, time: formattedTime });
+        onAddTask({ text: newTaskText, category: newCategory, time: formattedTime, date: selectedDate });
         setNewTaskText('');
         setNewCategory(undefined);
         setHour('08');
@@ -117,28 +118,78 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
         }, 150);
     };
 
-    const activeTasks = tasks.filter(task => !task.completed);
-    const completedTasks = tasks.filter(task => task.completed);
+    const tasksForSelectedDay = tasks.filter(task => task.date === selectedDate);
+    const activeTasks = tasksForSelectedDay.filter(task => !task.completed);
+    const completedTasks = tasksForSelectedDay.filter(task => task.completed);
     const categories: ('Personal' | 'Work' | 'Fitness')[] = ['Personal', 'Work', 'Fitness'];
 
 
     const pageTitle = (
-        <div>
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tighter">Today's Tasks</h1>
-            <p className="text-gray-500 mt-1">{currentDate}</p>
-        </div>
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tighter">My Tasks</h1>
     );
+
+    const today = new Date();
+    const todayStr = toLocalYYYYMMDD(today);
+    const weekDays = [];
+    const startOfWeek = new Date(today);
+    const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+
+    // Adjust to get Monday as the first day of the week
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    startOfWeek.setDate(today.getDate() + diff);
+
+    for (let i = 0; i < 7; i++) {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
+        const dayStr = toLocalYYYYMMDD(day);
+
+        weekDays.push({
+            date: dayStr,
+            name: day.toLocaleDateString('en-US', { weekday: 'short' }),
+            number: day.getDate(),
+            isToday: dayStr === todayStr,
+        });
+    }
     
     return (
         <div className="p-6">
-            <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} className="mb-8" />
+            <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} className="mb-4" />
             
+            <div className="mb-6 -mx-6 px-6">
+                 <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
+                    {weekDays.map(({ date, name, number, isToday }) => {
+                        const isSelected = date === selectedDate;
+                        return (
+                        <button
+                            key={date}
+                            onClick={() => setSelectedDate(date)}
+                            className={`relative flex-shrink-0 w-14 h-20 flex flex-col items-center justify-center rounded-2xl transition-all duration-300 transform will-change-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-teal-500 ${
+                                isSelected
+                                    ? 'bg-teal-500 text-white shadow-lg scale-105'
+                                    : 'bg-white text-gray-700 shadow-sm hover:bg-gray-100 hover:-translate-y-1'
+                            }`}
+                        >
+                            <span className={`text-sm font-semibold ${isSelected ? 'text-teal-100' : 'text-gray-400'}`}>{name}</span>
+                            <span className="text-2xl font-bold mt-1">{number}</span>
+                            {isToday && !isSelected && <div className="absolute bottom-1.5 w-1.5 h-1.5 bg-teal-500 rounded-full"></div>}
+                        </button>
+                    )}
+                    )}
+                </div>
+            </div>
+
             <div className="pr-2 -mr-2">
                 {tasks.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="text-5xl mb-4">📝</div>
                         <p className="text-lg font-semibold text-gray-600">No tasks yet</p>
                         <p className="text-gray-500">Tap the <span className="font-bold text-teal-600">+</span> button to add your first task!</p>
+                    </div>
+                ) : tasksForSelectedDay.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="text-5xl mb-4">🎉</div>
+                        <p className="text-lg font-semibold text-gray-600">All clear for this day!</p>
+                        <p className="text-gray-500">Add a new task or enjoy your break.</p>
                     </div>
                 ) : (
                     <>

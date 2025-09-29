@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Task, Screen } from '../types';
 import Header from '../components/Header';
@@ -7,15 +8,19 @@ interface TrackerScreenProps {
     setActiveScreen: (screen: Screen) => void;
 }
 
-const StatCard: React.FC<{ label: string; value: string | number; }> = ({ label, value }) => (
-    <div className="bg-white p-4 rounded-2xl shadow-sm text-center">
+const StatCard: React.FC<{ label: string; value: string | number; className?: string }> = ({ label, value, className = '' }) => (
+    <div className={`bg-white p-4 rounded-2xl shadow-sm text-center ${className}`}>
         <p className="text-3xl font-bold text-teal-500">{value}</p>
         <p className="text-sm text-gray-500 mt-1">{label}</p>
     </div>
 );
 
-const CalendarDay: React.FC<{ day: number, active: boolean }> = ({ day, active }) => (
-    <div className={`w-10 h-10 flex items-center justify-center rounded-full ${active ? 'bg-green-400 text-white' : 'bg-gray-100'}`}>
+const CalendarDay: React.FC<{ day: number, active: boolean, isToday: boolean }> = ({ day, active, isToday }) => (
+    <div className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors duration-300 ${
+        active ? 'bg-green-400 text-white font-bold' : 
+        isToday ? 'bg-teal-100 text-teal-600' : 
+        'bg-gray-100'
+    }`}>
         {day}
     </div>
 );
@@ -26,9 +31,53 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen })
     const activeTasks = totalTasks - completedTasks;
     const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-    // Mock data for calendar/streak
-    const streak = 5; 
-    const activeDays = [3, 4, 5, 6, 7];
+    const toYYYYMMDD = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    
+    // Group tasks by date to check for full completion
+    const tasksByDate = new Map<string, { total: number; completed: number }>();
+    tasks.forEach(task => {
+        if (task.date) {
+            if (!tasksByDate.has(task.date)) {
+                tasksByDate.set(task.date, { total: 0, completed: 0 });
+            }
+            const dayStats = tasksByDate.get(task.date)!;
+            dayStats.total += 1;
+            if (task.completed) {
+                dayStats.completed += 1;
+            }
+        }
+    });
+
+    // A day is "fully complete" only if all tasks for that day are done.
+    const fullyCompletedDates = new Set<string>();
+    for (const [date, stats] of tasksByDate.entries()) {
+        if (stats.total > 0 && stats.total === stats.completed) {
+            fullyCompletedDates.add(date);
+        }
+    }
+    
+    const today = new Date();
+    const todayYYYYMMDD = toYYYYMMDD(today);
+    const dayOfWeek = today.getDay(); // Sunday - 0, Monday - 1, ...
+    const startOfWeek = new Date(today);
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to Monday as start of week
+    startOfWeek.setDate(today.getDate() + diff);
+    
+    const weekDays = Array.from({ length: 7 }).map((_, i) => {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + i);
+        const dayYYYYMMDD = toYYYYMMDD(day);
+        return {
+            dateNumber: day.getDate(),
+            isToday: dayYYYYMMDD === todayYYYYMMDD,
+            active: fullyCompletedDates.has(dayYYYYMMDD) // Use the new set here
+        };
+    });
 
     const pageTitle = (
         <div>
@@ -46,36 +95,19 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen })
         activeLabel = "Add a task";
         rateLabel = "Set a goal";
     } else {
-        // Completed Tasks Label
-        if (completedTasks === 0) {
-            completedLabel = "Let's start!";
-        } else if (completedTasks === totalTasks) {
-            completedLabel = "All clear!";
-        } else if (completedTasks >= totalTasks / 2) {
-            completedLabel = "Almost there!";
-        } else {
-            completedLabel = "Getting started";
-        }
+        if (completedTasks === 0) completedLabel = "Let's start!";
+        else if (completedTasks === totalTasks) completedLabel = "All clear!";
+        else if (completedTasks >= totalTasks / 2) completedLabel = "Almost there!";
+        else completedLabel = "Getting started";
 
-        // Active Tasks Label
-        if (activeTasks === 0) {
-            activeLabel = "Well done!";
-        } else if (activeTasks === 1) {
-            activeLabel = "One left";
-        } else {
-            activeLabel = "Still to do";
-        }
+        if (activeTasks === 0) activeLabel = "Well done!";
+        else if (activeTasks === 1) activeLabel = "One left";
+        else activeLabel = "Still to do";
 
-        // Completion Rate Label
-        if (completionPercentage === 0) {
-            rateLabel = "Start crushing it";
-        } else if (completionPercentage === 100) {
-            rateLabel = "Perfection!";
-        } else if (completionPercentage >= 50) {
-            rateLabel = "On a roll!";
-        } else {
-            rateLabel = "Good progress";
-        }
+        if (completionPercentage === 0) rateLabel = "Start crushing it";
+        else if (completionPercentage === 100) rateLabel = "Perfection!";
+        else if (completionPercentage >= 50) rateLabel = "On a roll!";
+        else rateLabel = "Good progress";
     }
 
     return (
@@ -83,10 +115,9 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen })
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
             <section className="grid grid-cols-2 gap-4">
+                <StatCard className="col-span-2" label={rateLabel} value={`${completionPercentage}%`} />
                 <StatCard label={completedLabel} value={completedTasks} />
                 <StatCard label={activeLabel} value={activeTasks} />
-                <StatCard label={rateLabel} value={`${completionPercentage}%`} />
-                <StatCard label="Current Streak" value={`${streak} Days`} />
             </section>
 
             <section>
@@ -102,8 +133,8 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen })
                         <span>Sun</span>
                     </div>
                      <div className="grid grid-cols-7 gap-2 text-sm">
-                        {Array.from({ length: 7 }, (_, i) => i + 1).map(day => (
-                            <CalendarDay key={day} day={day} active={activeDays.includes(day)} />
+                        {weekDays.map((day, index) => (
+                            <CalendarDay key={index} day={day.dateNumber} active={day.active} isToday={day.isToday} />
                         ))}
                     </div>
                 </div>
