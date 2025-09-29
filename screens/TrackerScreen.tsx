@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Task, Screen } from '../types';
 import Header from '../components/Header';
@@ -7,13 +6,6 @@ interface TrackerScreenProps {
     tasks: Task[];
     setActiveScreen: (screen: Screen) => void;
 }
-
-const StatCard: React.FC<{ label: string; value: string | number; className?: string }> = ({ label, value, className = '' }) => (
-    <div className={`bg-white p-4 rounded-2xl shadow-sm text-center ${className}`}>
-        <p className="text-3xl font-bold text-teal-500">{value}</p>
-        <p className="text-sm text-gray-500 mt-1">{label}</p>
-    </div>
-);
 
 const CalendarDay: React.FC<{ day: number, active: boolean, isToday: boolean }> = ({ day, active, isToday }) => (
     <div className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors duration-300 ${
@@ -25,12 +17,15 @@ const CalendarDay: React.FC<{ day: number, active: boolean, isToday: boolean }> 
     </div>
 );
 
-const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen }) => {
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(t => t.completed).length;
-    const activeTasks = totalTasks - completedTasks;
-    const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+const categoryDetails: { [key in 'Work' | 'Personal' | 'Fitness']: { icon: string; gradient: string; } } = {
+    Work: { icon: '💼', gradient: 'from-blue-400 to-blue-500' },
+    Personal: { icon: '🏠', gradient: 'from-yellow-400 to-yellow-500' },
+    Fitness: { icon: '🧘', gradient: 'from-green-400 to-green-500' },
+};
+const categories: ('Work' | 'Personal' | 'Fitness')[] = ['Work', 'Personal', 'Fitness'];
 
+
+const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen }) => {
     const toYYYYMMDD = (date: Date): string => {
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -75,9 +70,17 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen })
         return {
             dateNumber: day.getDate(),
             isToday: dayYYYYMMDD === todayYYYYMMDD,
-            active: fullyCompletedDates.has(dayYYYYMMDD) // Use the new set here
+            active: fullyCompletedDates.has(dayYYYYMMDD)
         };
     });
+
+    const categoryStats = categories.map(category => {
+        const categoryTasks = tasks.filter(t => t.category === category);
+        const completed = categoryTasks.filter(t => t.completed).length;
+        const total = categoryTasks.length;
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        return { name: category, completed, total, percentage };
+    }).filter(stat => stat.total > 0);
 
     const pageTitle = (
         <div>
@@ -86,38 +89,40 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen })
         </div>
     );
 
-    let completedLabel: string;
-    let activeLabel: string;
-    let rateLabel: string;
-
-    if (totalTasks === 0) {
-        completedLabel = "Nothing yet";
-        activeLabel = "Add a task";
-        rateLabel = "Set a goal";
-    } else {
-        if (completedTasks === 0) completedLabel = "Let's start!";
-        else if (completedTasks === totalTasks) completedLabel = "All clear!";
-        else if (completedTasks >= totalTasks / 2) completedLabel = "Almost there!";
-        else completedLabel = "Getting started";
-
-        if (activeTasks === 0) activeLabel = "Well done!";
-        else if (activeTasks === 1) activeLabel = "One left";
-        else activeLabel = "Still to do";
-
-        if (completionPercentage === 0) rateLabel = "Start crushing it";
-        else if (completionPercentage === 100) rateLabel = "Perfection!";
-        else if (completionPercentage >= 50) rateLabel = "On a roll!";
-        else rateLabel = "Good progress";
-    }
-
     return (
         <div className="p-6 space-y-8">
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
-            <section className="grid grid-cols-2 gap-4">
-                <StatCard className="col-span-2" label={rateLabel} value={`${completionPercentage}%`} />
-                <StatCard label={completedLabel} value={completedTasks} />
-                <StatCard label={activeLabel} value={activeTasks} />
+            <section>
+                <h2 className="text-lg font-bold text-gray-800 mb-4">Category Progress</h2>
+                 {categoryStats.length > 0 ? (
+                    <div className={`grid gap-4 ${
+                        categoryStats.length === 2 ? 'grid-cols-2' : 
+                        categoryStats.length >= 3 ? 'grid-cols-3' :
+                        'grid-cols-1'
+                    }`}>
+                        {categoryStats.map(stat => {
+                            const details = categoryDetails[stat.name];
+                            return (
+                                <div key={stat.name} className="bg-white p-4 rounded-2xl shadow-sm flex flex-col text-center">
+                                    <div className="text-3xl mx-auto mb-2">{details.icon}</div>
+                                    <h3 className="font-bold text-gray-800 text-sm">{stat.name}</h3>
+                                    <span className="text-xs font-semibold text-gray-400 mt-1 mb-3">{stat.completed} of {stat.total} done</span>
+                                    <div className="w-full bg-gray-200 rounded-full h-2 mt-auto">
+                                        <div
+                                            className={`bg-gradient-to-r ${details.gradient} h-2 rounded-full transition-all duration-700 ease-out`}
+                                            style={{ width: `${stat.percentage}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="bg-white p-6 rounded-2xl shadow-sm text-center">
+                        <p className="text-gray-500">No categorized tasks yet. Add some to see your progress!</p>
+                    </div>
+                )}
             </section>
 
             <section>

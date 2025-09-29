@@ -12,37 +12,47 @@ interface TasksScreenProps {
     setActiveScreen: (screen: Screen) => void;
 }
 
-const TaskItem: React.FC<{ task: Task; onToggle: (id: string) => void; onDelete: (id: string) => void }> = React.memo(({ task, onToggle, onDelete }) => (
-    <div className="flex items-center p-4 bg-white rounded-2xl mb-3 shadow-sm transition-transform duration-300 hover:shadow-md hover:bg-white/80 group will-change-transform hover:-translate-y-1">
-        <button onClick={() => onToggle(task.id)} className="flex items-center w-full text-left">
-            <div className={`w-6 h-6 rounded-full border-2 flex-shrink-0 mr-4 flex items-center justify-center transition-colors duration-300 ${task.completed ? 'bg-teal-500 border-teal-500' : 'border-gray-300 group-hover:border-teal-400'}`}>
-                {task.completed && <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+const TaskItem: React.FC<{ task: Task; onToggle: (id: string) => void; onDelete: (id: string) => void }> = React.memo(({ task, onToggle, onDelete }) => {
+    const categoryColor = task.category === 'Work' ? 'bg-blue-400' :
+                          task.category === 'Fitness' ? 'bg-green-400' :
+                          'bg-yellow-500'; // Personal
+
+    return (
+        <div className="relative mb-3 group">
+             <div className="absolute left-3 top-7 -translate-y-1/2 -translate-x-1/2 z-10">
+                <div 
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${task.completed ? 'bg-gray-300' : (task.category ? categoryColor : 'bg-gray-400')}`}
+                    style={{boxShadow: '0 0 0 4px #F9FAFB'}} /* bg-gray-50 */
+                ></div>
             </div>
-            <div className="flex-grow">
-                 <span className={`truncate ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                    {task.text}
-                </span>
-                {(task.category || task.time) && (
-                    <div className="flex items-center space-x-2 text-xs text-gray-400 mt-1">
-                        {task.category && (
-                            <span className={`px-2 py-0.5 rounded-full text-white text-[10px] font-semibold ${
-                                task.category === 'Work' ? 'bg-blue-400' :
-                                task.category === 'Fitness' ? 'bg-green-400' :
-                                'bg-yellow-500' // Personal
-                            }`}>
-                                {task.category}
-                            </span>
-                        )}
-                        {task.time && <span>{task.time}</span>}
+            <div className="ml-8 flex items-center p-4 bg-white rounded-2xl shadow-sm transition-transform duration-300 hover:shadow-md hover:bg-white/80 will-change-transform hover:-translate-y-1">
+                <button onClick={() => onToggle(task.id)} className="flex items-center w-full text-left">
+                    <div className={`w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors duration-300 ${task.completed ? 'bg-teal-500 border-teal-500' : 'border-gray-300 group-hover:border-teal-400'}`}>
+                        {task.completed && <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                     </div>
-                )}
+                    <div className="flex-grow ml-4">
+                         <span className={`truncate ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                            {task.text}
+                        </span>
+                        {(task.category || task.time) && (
+                            <div className="flex items-center space-x-2 text-xs text-gray-400 mt-1">
+                                {task.category && (
+                                    <span className={`px-2 py-0.5 rounded-full text-white text-[10px] font-semibold ${categoryColor}`}>
+                                        {task.category}
+                                    </span>
+                                )}
+                                {task.time && <span>{task.time}</span>}
+                            </div>
+                        )}
+                    </div>
+                </button>
+                <button onClick={() => onDelete(task.id)} className="ml-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <TrashIcon className="w-5 h-5" />
+                </button>
             </div>
-        </button>
-         <button onClick={() => onDelete(task.id)} className="ml-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-            <TrashIcon className="w-5 h-5" />
-        </button>
-    </div>
-));
+        </div>
+    );
+});
 
 
 const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTask, onDeleteTask, setActiveScreen }) => {
@@ -192,16 +202,18 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
                         <p className="text-gray-500">Add a new task or enjoy your break.</p>
                     </div>
                 ) : (
-                    <>
+                    <div className="relative">
+                        {activeTasks.length > 0 && <div className="absolute top-7 bottom-7 left-3 w-0.5 bg-gray-200 rounded-full" />}
                         {activeTasks.map(task => <TaskItem key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask} />)}
                         
                         {completedTasks.length > 0 && (
-                            <div className="mt-8">
-                                <h2 className="text-gray-500 font-bold mb-4">Completed</h2>
+                            <div className="mt-8 relative">
+                                <h2 className="text-gray-500 font-bold mb-4 ml-8">Completed</h2>
+                                <div className="absolute top-7 bottom-7 left-3 w-0.5 bg-gray-200 rounded-full" />
                                 {completedTasks.map(task => <TaskItem key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask}/>)}
                             </div>
                         )}
-                    </>
+                    </div>
                 )}
             </div>
             

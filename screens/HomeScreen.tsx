@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import type { Task, Screen } from '../types';
 import { ChevronRightIcon } from '../components/Icons';
@@ -70,7 +69,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
             <section className="bg-white rounded-3xl shadow-sm flex overflow-hidden items-stretch">
                 <div className="flex-1 p-6 flex flex-col justify-center space-y-4">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-800 leading-tight whitespace-nowrap">{progressTitle}</h2>
+                        <h2 className="text-xl font-bold text-gray-800 leading-tight">{progressTitle}</h2>
                         <p className="text-sm text-gray-500 mt-1">{completedTasks} of {totalTasks} tasks done</p>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -80,9 +79,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
                         ></div>
                     </div>
                 </div>
-                <div className="w-36 flex-shrink-0">
+                <div className="w-1/3">
                     <img
-                        src="https://i.postimg.cc/XNDS4GMp/16fbcbbc47b26b458438ce58ab4429f8.png"
+                        src="https://i.postimg.cc/KYCDcR3t/69eeccd4513dc197ae937877451097d9.png"
                         alt="Progress illustration"
                         className="w-full h-full object-cover object-right"
                     />
