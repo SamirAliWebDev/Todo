@@ -66,25 +66,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
         <div className="p-6 space-y-8">
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
-            <section className="bg-white rounded-3xl shadow-sm flex overflow-hidden items-stretch">
-                <div className="flex-1 p-6 flex flex-col justify-center space-y-4">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-800 leading-tight">{progressTitle}</h2>
-                        <p className="text-sm text-gray-500 mt-1">{completedTasks} of {totalTasks} tasks done</p>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div
-                            className="bg-gradient-to-r from-cyan-400 to-teal-500 h-3 rounded-full transition-all duration-700 ease-out"
-                            style={{ width: `${completionPercentage}%` }}
-                        ></div>
-                    </div>
+            <section
+                className="bg-white rounded-3xl shadow-lg p-6 bg-right-bottom bg-no-repeat bg-[length:auto_100%]"
+                style={{ backgroundImage: `url('https://i.postimg.cc/KYCDcR3t/69eeccd4513dc197ae937877451097d9.png')` }}
+            >
+                <div className="w-7/12">
+                    <h2 className="text-lg font-bold text-gray-800 leading-tight">{progressTitle}</h2>
+                    <p className="text-sm text-gray-500 mt-1">{completedTasks} of {totalTasks} tasks done</p>
                 </div>
-                <div className="w-1/3">
-                    <img
-                        src="https://i.postimg.cc/KYCDcR3t/69eeccd4513dc197ae937877451097d9.png"
-                        alt="Progress illustration"
-                        className="w-full h-full object-cover object-right"
-                    />
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
+                    <div
+                        className="bg-teal-500 h-2 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: completionPercentage === 0 ? '8px' : `${Math.max(completionPercentage, 2)}%` }}
+                    ></div>
                 </div>
             </section>
             
