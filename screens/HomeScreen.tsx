@@ -1,4 +1,13 @@
 
+                 <section className="bg-gradient-to-br from-cyan-500 to-teal-600 p-6 rounded-3xl text-white">
+                    <h2 className="text-lg font-bold">Go Premium!</h2>
+                    <p className="text-sm opacity-80 mt-1 mb-4">Unlock more features and boost your productivity.</p>
+                    <button className="bg-white text-teal-600 font-bold py-2 px-5 rounded-full text-sm">Upgrade Now</button>
+                </section>
+            </div>
+        </div>
+    );
+};
 import React from 'react';
 import type { Task, Screen } from '../types';
 import { ChevronRightIcon } from '../components/Icons';
@@ -63,16 +72,41 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
     );
 
     return (
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-8 max-w-4xl mx-auto">
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
-            <section
-                className="bg-white rounded-3xl shadow-lg p-6 bg-right-bottom bg-no-repeat bg-[length:auto_100%]"
-                style={{ backgroundImage: `url('https://i.postimg.cc/KYCDcR3t/69eeccd4513dc197ae937877451097d9.png')` }}
-            >
-                <div className="w-7/12">
-                    <h2 className="text-lg font-bold text-gray-800 leading-tight">{progressTitle}</h2>
-                    <p className="text-sm text-gray-500 mt-1">{completedTasks} of {totalTasks} tasks done</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <section
+                    className="bg-white rounded-3xl shadow-lg p-6 bg-right-bottom bg-no-repeat bg-[length:auto_100%] lg:col-span-2"
+                    style={{ backgroundImage: `url('https://i.postimg.cc/KYCDcR3t/69eeccd4513dc197ae937877451097d9.png')` }}
+                >
+                    <div className="w-7/12 lg:w-1/2">
+                        <h2 className="text-lg lg:text-xl font-bold text-gray-800 leading-tight">{progressTitle}</h2>
+                        <p className="text-sm lg:text-base text-gray-500 mt-1">{completedTasks} of {totalTasks} tasks done</p>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 lg:h-3 mt-4">
+                        <div
+                            className="bg-teal-500 h-2 lg:h-3 rounded-full transition-all duration-700 ease-out"
+                            style={{ width: completionPercentage === 0 ? '8px' : `${Math.max(completionPercentage, 2)}%` }}
+                        ></div>
+                    </div>
+                </section>
+                
+                <section>
+                     <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-bold text-gray-800">Upcoming Tasks</h2>
+                        <button className="text-sm font-semibold text-teal-500 flex items-center">
+                            See All <ChevronRightIcon className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <div>
+                        {tasks.filter(t => !t.completed).slice(0, 3).length > 0 ? (
+                            tasks.filter(t => !t.completed).slice(0, 3).map(task => <TaskQuickView key={task.id} task={task} />)
+                        ) : (
+                            <p className="text-gray-500 text-center py-4">No upcoming tasks. Great job!</p>
+                        )}
+                    </div>
+                </section>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
                     <div
@@ -81,29 +115,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ tasks, userName, setActiveScree
                     ></div>
                 </div>
             </section>
-            
-            <section>
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold text-gray-800">Upcoming Tasks</h2>
-                    <button className="text-sm font-semibold text-teal-500 flex items-center">
-                        See All <ChevronRightIcon className="w-4 h-4" />
-                    </button>
-                </div>
-                <div>
-                    {tasks.filter(t => !t.completed).slice(0, 3).length > 0 ? (
-                        tasks.filter(t => !t.completed).slice(0, 3).map(task => <TaskQuickView key={task.id} task={task} />)
-                    ) : (
-                        <p className="text-gray-500 text-center py-4">No upcoming tasks. Great job!</p>
-                    )}
-                </div>
-            </section>
-
-             <section className="bg-gradient-to-br from-cyan-500 to-teal-600 p-6 rounded-3xl text-white">
-                <h2 className="text-lg font-bold">Go Premium!</h2>
-                <p className="text-sm opacity-80 mt-1 mb-4">Unlock more features and boost your productivity.</p>
-                <button className="bg-white text-teal-600 font-bold py-2 px-5 rounded-full text-sm">Upgrade Now</button>
-            </section>
-        </div>
     );
 };
 

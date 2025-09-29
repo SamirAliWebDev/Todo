@@ -162,10 +162,10 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
     }
     
     return (
-        <div className="p-6">
+        <div className="p-6 max-w-4xl mx-auto">
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} className="mb-4" />
             
-            <div className="mb-6 -mx-6 px-6">
+            <div className="mb-6 -mx-6 px-6 lg:mx-0 lg:px-0">
                  <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
                     {weekDays.map(({ date, name, number, isToday }) => {
                         const isSelected = date === selectedDate;
@@ -188,7 +188,7 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
                 </div>
             </div>
 
-            <div className="pr-2 -mr-2">
+            <div className="pr-2 -mr-2 lg:pr-0 lg:mr-0">
                 {tasks.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="text-5xl mb-4">📝</div>
@@ -218,7 +218,7 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
             </div>
             
             {/* FAB to open modal */}
-            <div className="fixed bottom-28 right-6 z-20">
+            <div className="fixed bottom-28 right-6 z-20 lg:bottom-6">
                 <button onClick={() => setIsModalOpen(true)} className="w-16 h-16 bg-teal-500 text-white rounded-full flex items-center justify-center text-lg font-semibold hover:bg-teal-600 transition-transform duration-300 transform hover:scale-110 shadow-lg shadow-teal-500/50 will-change-transform">
                     <PlusIcon className="w-8 h-8" />
                 </button>
@@ -234,7 +234,7 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
             
             {/* Modal positioned above the FAB */}
             <div
-                className={`fixed bottom-[12rem] right-6 z-40 w-[calc(100%-3rem)] max-w-sm ${!isModalOpen && 'pointer-events-none'}`}
+                className={`fixed bottom-[12rem] right-6 z-40 w-[calc(100%-3rem)] max-w-sm lg:bottom-[6rem] lg:right-6 lg:max-w-md ${!isModalOpen && 'pointer-events-none'}`}
             >
                 <div 
                     className="w-full transition-[clip-path] duration-500 ease-in-out"
@@ -245,7 +245,7 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
                     }}
                 >
                     <div 
-                        className="relative w-full p-6 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl"
+                        className="relative w-full p-6 bg-white/90 lg:bg-white backdrop-blur-xl rounded-2xl shadow-2xl border lg:border-gray-200"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button 
@@ -268,7 +268,7 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
 
                             <div className="mt-4">
                                 <label className="text-sm font-semibold text-gray-600 mb-2 block">Category</label>
-                                <div className="flex space-x-2">
+                                <div className="flex flex-wrap gap-2">
                                     {categories.map(cat => (
                                         <button
                                             key={cat}
@@ -288,7 +288,7 @@ const TasksScreen: React.FC<TasksScreenProps> = ({ tasks, onAddTask, onToggleTas
 
                             <div className="mt-4">
                                 <label className="text-sm font-semibold text-gray-600 mb-2 block">Time</label>
-                                <div className="h-32 bg-white/50 rounded-xl flex items-center justify-between text-xl font-semibold text-gray-800 p-2 relative">
+                                <div className="h-32 bg-white/70 lg:bg-gray-50 rounded-xl flex items-center justify-between text-xl font-semibold text-gray-800 p-2 relative">
                                     <div className="absolute inset-x-2 h-10 top-1/2 -translate-y-1/2 bg-teal-500/10 rounded-lg z-0 border-y-2 border-teal-500/20"></div>
                                     
                                     {/* Hour Scroller */}

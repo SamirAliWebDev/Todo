@@ -73,11 +73,11 @@ const App: React.FC = () => {
     };
     
     return (
-        <div className="h-screen w-screen max-w-md mx-auto flex flex-col font-sans bg-gray-50">
-            <main className="flex-1 overflow-y-auto pb-28 scrollbar-hide">
+        <div className="min-h-screen w-full max-w-6xl mx-auto flex flex-col font-sans bg-gray-50 lg:flex-row lg:gap-6 lg:p-6">
+            <main className="flex-1 overflow-y-auto pb-28 lg:pb-6 scrollbar-hide lg:bg-white lg:rounded-2xl lg:shadow-sm">
                 {renderScreen()}
             </main>
-            <BottomNav activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
+            <BottomNav activeScreen={activeScreen} setActiveScreen={setActiveScreen} tasks={tasks} />
         </div>
     );
 };

@@ -8,7 +8,7 @@ interface TrackerScreenProps {
 }
 
 const CalendarDay: React.FC<{ day: number, active: boolean, isToday: boolean }> = ({ day, active, isToday }) => (
-    <div className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors duration-300 ${
+    <div className={`w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-full transition-colors duration-300 text-sm lg:text-base ${
         active ? 'bg-green-400 text-white font-bold' : 
         isToday ? 'bg-teal-100 text-teal-600' : 
         'bg-gray-100'
@@ -90,60 +90,62 @@ const TrackerScreen: React.FC<TrackerScreenProps> = ({ tasks, setActiveScreen })
     );
 
     return (
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-8 max-w-4xl mx-auto">
             <Header title={pageTitle} onAvatarClick={() => setActiveScreen('settings')} />
 
-            <section>
-                <h2 className="text-lg font-bold text-gray-800 mb-4">Category Progress</h2>
-                 {categoryStats.length > 0 ? (
-                    <div className={`grid gap-4 ${
-                        categoryStats.length === 2 ? 'grid-cols-2' : 
-                        categoryStats.length >= 3 ? 'grid-cols-3' :
-                        'grid-cols-1'
-                    }`}>
-                        {categoryStats.map(stat => {
-                            const details = categoryDetails[stat.name];
-                            return (
-                                <div key={stat.name} className="bg-white p-4 rounded-2xl shadow-sm flex flex-col text-center">
-                                    <div className="text-3xl mx-auto mb-2">{details.icon}</div>
-                                    <h3 className="font-bold text-gray-800 text-sm">{stat.name}</h3>
-                                    <span className="text-xs font-semibold text-gray-400 mt-1 mb-3">{stat.completed} of {stat.total} done</span>
-                                    <div className="w-full bg-gray-200 rounded-full h-2 mt-auto">
-                                        <div
-                                            className={`bg-gradient-to-r ${details.gradient} h-2 rounded-full transition-all duration-700 ease-out`}
-                                            style={{ width: `${stat.percentage}%` }}
-                                        ></div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <section className="lg:col-span-2">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4">Category Progress</h2>
+                     {categoryStats.length > 0 ? (
+                        <div className={`grid gap-4 ${
+                            categoryStats.length === 2 ? 'grid-cols-2 lg:grid-cols-2' : 
+                            categoryStats.length >= 3 ? 'grid-cols-3 lg:grid-cols-3' :
+                            'grid-cols-1 lg:grid-cols-1'
+                        }`}>
+                            {categoryStats.map(stat => {
+                                const details = categoryDetails[stat.name];
+                                return (
+                                    <div key={stat.name} className="bg-white p-4 lg:p-6 rounded-2xl shadow-sm flex flex-col text-center">
+                                        <div className="text-3xl lg:text-4xl mx-auto mb-2">{details.icon}</div>
+                                        <h3 className="font-bold text-gray-800 text-sm lg:text-base">{stat.name}</h3>
+                                        <span className="text-xs lg:text-sm font-semibold text-gray-400 mt-1 mb-3">{stat.completed} of {stat.total} done</span>
+                                        <div className="w-full bg-gray-200 rounded-full h-2 lg:h-3 mt-auto">
+                                            <div
+                                                className={`bg-gradient-to-r ${details.gradient} h-2 lg:h-3 rounded-full transition-all duration-700 ease-out`}
+                                                style={{ width: `${stat.percentage}%` }}
+                                            ></div>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className="bg-white p-6 rounded-2xl shadow-sm text-center">
-                        <p className="text-gray-500">No categorized tasks yet. Add some to see your progress!</p>
-                    </div>
-                )}
-            </section>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="bg-white p-6 rounded-2xl shadow-sm text-center">
+                            <p className="text-gray-500">No categorized tasks yet. Add some to see your progress!</p>
+                        </div>
+                    )}
+                </section>
 
-            <section>
-                <h2 className="text-lg font-bold text-gray-800 mb-4">This Week's Activity</h2>
-                 <div className="bg-white p-4 rounded-2xl shadow-sm">
-                    <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold text-gray-500 mb-2">
-                        <span>Mon</span>
-                        <span>Tue</span>
-                        <span>Wed</span>
-                        <span>Thu</span>
-                        <span>Fri</span>
-                        <span>Sat</span>
-                        <span>Sun</span>
+                <section className="lg:col-span-2">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4">This Week's Activity</h2>
+                     <div className="bg-white p-4 lg:p-6 rounded-2xl shadow-sm">
+                        <div className="grid grid-cols-7 gap-2 lg:gap-4 text-center text-xs lg:text-sm font-bold text-gray-500 mb-2 lg:mb-4">
+                            <span>Mon</span>
+                            <span>Tue</span>
+                            <span>Wed</span>
+                            <span>Thu</span>
+                            <span>Fri</span>
+                            <span>Sat</span>
+                            <span>Sun</span>
+                        </div>
+                         <div className="grid grid-cols-7 gap-2 lg:gap-4 text-sm">
+                            {weekDays.map((day, index) => (
+                                <CalendarDay key={index} day={day.dateNumber} active={day.active} isToday={day.isToday} />
+                            ))}
+                        </div>
                     </div>
-                     <div className="grid grid-cols-7 gap-2 text-sm">
-                        {weekDays.map((day, index) => (
-                            <CalendarDay key={index} day={day.dateNumber} active={day.active} isToday={day.isToday} />
-                        ))}
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
     );
 };
